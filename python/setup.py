@@ -6,7 +6,7 @@ setup(
     description='BrainyScan project supporting package',
     author='Viktar',
     author_email='myemail@example.com',
-    packages=find_packages(where=''),
+    packages=find_packages(),
     install_requires=[
         'tensorflow',
         'keras',
@@ -15,5 +15,5 @@ setup(
         'tqdm',
         'scikit-learn',
         'seaborn',
-    ]
+    ],
 )
