@@ -7,7 +7,7 @@ from tqdm import tqdm
 import numpy as np
 import tensorflow as tf
 import keras
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 
 from .colab import is_colab, mount_gdrive
 from .ziply import zip_directory, unzip_directory
@@ -35,8 +35,16 @@ def fit_model(
         save_best_only = True)
 
     early_stopping_cb = EarlyStopping(
+        monitor='val_loss',
         patience = 10,
         restore_best_weights = True
+    )
+
+    reduce_lronplateu = ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=2,
+        verbose=1
     )
 
     model.compile(
@@ -49,7 +57,7 @@ def fit_model(
         train_ds,
         epochs = epochs,
         validation_data = val_ds,
-        callbacks = [ checkpoint_cb, early_stopping_cb ]
+        callbacks = [ checkpoint_cb, early_stopping_cb, reduce_lronplateu ]
     )
     return hist
 
