@@ -1,54 +1,46 @@
 #!/usr/bin/env python3
 
-
 import os, shutil
 import cv2
-import zipfile
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 import numpy as np
-import pandas as pd
-
-from tqdm import tqdm
 
 import keras
-from keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras.layers import Flatten, Dense, Dropout, Input
-from tensorflow.keras.layers import GlobalAveragePooling2D
+from tensorflow.keras.layers import GlobalAveragePooling2D, BatchNormalization
 from tensorflow.keras.utils import image_dataset_from_directory
 
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications import Xception
 
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 
+## !
 import brainy as brn
-
 
 def create_model(class_num: int, summary: bool = False) -> keras.Model:
     inputs = Input(shape=(image_size[0], image_size[1], 3))
-    base_model = tf.keras.applications.Xception(
+
+    base_model = tf.keras.applications.VGG16(
+        include_top = False,
         pooling = 'avg',
         weights = 'imagenet',
-        include_top = False,
-        input_tensor = inputs
-    )
+        input_tensor = inputs)
+    
     base_model.trainable = False
 
     x = base_model.output
-
-    x = keras.layers.Flatten()(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dense(2048, activation='relu')(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dense(1024, activation='relu')(x)
-    x = keras.layers.BatchNormalization()(x)
-    outputs = keras.layers.Dense(4, activation='softmax')(x)
+    x = Flatten()(x)
+    x = BatchNormalization()(x)
+    x = Dense(2048, activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = Dense(1024, activation='relu')(x)
+    x = BatchNormalization()(x)
+    outputs = Dense(4, activation='softmax')(x)
 
     model = keras.Model(inputs = inputs, outputs = outputs)
 
@@ -72,14 +64,13 @@ def find_model_dir() -> str:
             break
     return mdir
 
-
 if __name__ == '__main__':
 
-    MODEL_NAME = 'Xception'
+    MODEL_NAME = 'VGG16'
     SEED = 42
-    image_size = (299, 299)
+    image_size = (224, 224)
     batch_size = 25
-    EPOCHS = 20
+    EPOCHS = 50
 
     dataset_dir = os.path.join(find_data_dir(), 'SmallPreprocessed')
     if brn.is_colab():
@@ -95,9 +86,9 @@ if __name__ == '__main__':
         image_size = image_size,
         batch_size = batch_size,
         color_mode = 'rgb',
-        preprocess = tf.keras.applications.xception.preprocess_input)
+        preprocess = tf.keras.applications.vgg16.preprocess_input)
 
-    model = create_model(len(class_names))
+    model = create_model(len(class_names), summary = True)
     
     hist = brn.fit_model(
         model = model,
@@ -153,7 +144,6 @@ if __name__ == '__main__':
             f'![learn curve]({MODEL_NAME.lower()}_learn.png)',
             f'![confusion matrix]({MODEL_NAME.lower()}_confusion_matrix.png)'
         ))
-
     brn.append_file_to_zip(learn_curve_file, arch_path)
     brn.append_file_to_zip(confusion_matrix_file, arch_path)
 

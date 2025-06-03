@@ -73,11 +73,10 @@ if __name__ == '__main__':
 
     dataset_dir = os.path.join(find_data_dir(), 'SmallPreprocessed')
     if brn.is_colab():
-        dataset_dir = os.path.join(
-            brn.unzip_directory(
-                os.path.join(mount_gdrive('/content/drive')), 'smallpreprocessed.zip'),
-            'data', 
-            'SmallPreprocessed')
+        drive_dir = brn.mount_gdrive('/content/drive')
+        arch_dir = os.path.join(drive_dir, 'smallpreprocessed.zip')
+        unzip_dir = brn.unzip_directory(arch_dir, '.')
+        dataset_dir = os.path.join(unzip_dir, 'data', 'SmallPreprocessed')
 
     class_names, train_ds, test_ds, val_ds = brn.create_data_sources(
         train_path = os.path.join(dataset_dir, 'train'),
