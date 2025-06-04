@@ -1,11 +1,29 @@
 <!DOCTYPE html>
 <html lang='en'>
-    <head>
-        <title>BrainyScan Alzheimer Analyzer</title>
-        <link rel="icon" type="image/x-icon" href="{{ favicon }}">
-        <meta charset="utf-8">
-    </head>
-    <body>
-        <h1>Welcome to the BrainyScan project</h1>
-    </body>
+<head>
+  <title>BrainyScan Alzheimer Analyzer</title>
+  <link rel="icon" type="image/x-icon" href="{{ favicon }}">
+  <meta charset="utf-8">
+ <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <h1>Welcome to the BrainyScan project</h1>
+  <form class="upload-box" action="/analyze" method="post" enctype="multipart/form-data">
+    <label class="upload-label" for="image">Choose Brain Scan Image</label>
+    <input type="file" id="image" name="image" accept="image/*" required>
+    <br>
+    <input type="submit" value="Analyze">
+  </form>
+
+  <script>
+    const fileInput = document.getElementById('image');
+    const label = document.querySelector('.upload-label');
+
+    fileInput.addEventListener('change', function () {
+      if (this.files.length > 0) {
+        label.textContent = this.files[0].name;
+      }
+    });
+  </script>
+</body>
 </html>
