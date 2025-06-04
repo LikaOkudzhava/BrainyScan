@@ -1,0 +1,189 @@
+
+openapi: 3.0.4
+info:
+  title: BrainyScan API
+  description: |-
+    This is MRI analysis service developen by Neuefishe Data Science BrainyScan team
+  termsOfService: free
+  contact:
+    email: vik.public@gmx.de
+  license:
+    name: MIT
+    url: https://mit-license.org/
+  version: 1.0.0
+
+servers:
+  - url: http://barinyscan/api/v1
+
+tags:
+  - name: scan
+    description: Manage MRI scans
+
+paths:
+  /scan:
+    get:
+      tags:
+        - scan
+      summary: "get statistics of already scanned classifications"
+      operationId: get_stats
+      responses:
+        '200':
+          description: "Current Statistics"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Stats"
+
+    post:
+      tags:
+        - scan
+      summary: Upload MRI scan image
+      operationId: supply new MRI scan image to analysis
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: MRI scan JPEG image file
+            encoding:
+              file:
+                contentType: image/jpeg
+      responses:
+        '200':
+          description: Successfully uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Assigned image ID
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /scan/{id}:
+    get:
+      tags:
+        - scan
+      summary: Get classification result by resource ID
+      operationId: Get classification result
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Classification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Classified"
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: MRI scan not found
+        '422':
+          description: Validation exception
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          description: "HTTP error code"
+          example: 404
+        message:
+          type: string
+          description: "error description"
+          example: "Not found"
+      required:
+        - code
+        - message
+    Classified:
+      type: object
+      properties:
+        class:
+          type: string
+          description: "Predicted class"
+          example: "NonDemented"
+        probabilities:
+          type: object
+          properties:
+            MildDemented:
+              type: number
+              format: float
+              description: "Probability for class 'MildDemented'"
+              example: 0.15
+            ModerateDemented:
+              type: number
+              format: float
+              description: "Probability for class 'ModerateDemented'"
+              example: 0.10
+            NonDemented:
+              type: number
+              format: float
+              description: "Probability for class 'NonDemented'"
+              example: 0.83
+            VeryMildDemented:
+              type: number
+              format: float
+              description: "Probability for class 'VeryMildDemented'"
+              example: 0.02
+          required:
+            - MildDemented
+            - ModerateDemented
+            - NonDemented
+            - VeryMildDemented
+    Stats:
+      type: object
+      properties:
+        counters:
+          type: object
+          properties:
+            MildDemented:
+              type: number
+              format: int32
+              description: "Number of 'MildDemented' classified"
+              example: 10
+            ModerateDemented:
+              type: number
+              format: int32
+              description: "Number of 'ModerateDemented' classified"
+              example: 2
+            NonDemented:
+              type: number
+              format: int32
+              description: "Number of 'NonDemented' classified"
+              example: 4
+            VeryMildDemented:
+              type: number
+              format: int32
+              description: "Number of 'VeryMildDemented' classified"
+              example: 0.02
+          required:
+            - MildDemented
+            - ModerateDemented
+            - NonDemented
+            - VeryMildDemented
