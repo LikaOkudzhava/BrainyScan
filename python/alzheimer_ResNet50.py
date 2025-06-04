@@ -28,26 +28,27 @@ import brainy as brn
 
 
 def create_model(class_num: int, summary: bool = False) -> keras.Model:
+    image_size = (224, 224)
+
+    resnet50 = ResNet50(input_shape=(image_size[0], image_size[1], 3),include_top=False,weights='imagenet',pooling='avg')
+
     inputs = Input(shape=(image_size[0], image_size[1], 3))
-    base_model = tf.keras.applications.ResNet50(
-        pooling = 'avg',
-        weights = 'imagenet',
-        include_top = False,
-        input_tensor = inputs
-    )
-    base_model.trainable = False
+    x = resnet50(inputs, training=False)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(2048, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Dense(1024, activation='relu')(x)
+    x = layers.BatchNormalization()(x)
+    outputs = layers.Dense(4, activation='softmax')(x)
 
-    x = base_model.output
+    model = models.Model(inputs, outputs)
+    model.compile(optimizer=tf.keras.optimizers.Adam(),loss='categorical_crossentropy',metrics=['accuracy'])
 
-    #x = keras.layers.Flatten()(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dense(2048, activation='relu')(x)
-    x = keras.layers.BatchNormalization()(x)
-    x = keras.layers.Dense(1024, activation='relu')(x)
-    x = keras.layers.BatchNormalization()(x)
-    outputs = keras.layers.Dense(4, activation='softmax')(x)
+    resnet50.trainable = False
 
-    model = keras.Model(inputs = inputs, outputs = outputs)
+#  unfreeze the last 50 layers
+    for layer in resnet50.layers[-10:]:
+        layer.trainable = True
 
     if summary:
         model.summary()
@@ -60,7 +61,7 @@ def find_data_dir() -> str:
             ddir = d
             break
     return ddir
-    
+
 def find_model_dir() -> str:
     mdir = '.'
     for d in ('models', '../models'):
@@ -76,15 +77,14 @@ if __name__ == '__main__':
     SEED = 42
     image_size = (224, 224)
     batch_size = 25
-    EPOCHS = 1
+    EPOCHS = 20
 
     dataset_dir = os.path.join(find_data_dir(), 'SmallPreprocessed')
     if brn.is_colab():
-        dataset_dir = os.path.join(
-            brn.unzip_directory(
-                os.path.join(mount_gdrive('/content/drive')), 'smallpreprocessed.zip'),
-            'data', 
-            'SmallPreprocessed')
+       drive_dir = brn.mount_gdrive('/content/drive')
+       arch_dir = os.path.join(drive_dir, 'smallpreprocessed.zip')
+       unzip_dir = brn.unzip_directory(arch_dir, '.')
+       dataset_dir = os.path.join(unzip_dir, 'data', 'SmallPreprocessed')
 
     class_names, train_ds, test_ds, val_ds = brn.create_data_sources(
         train_path = os.path.join(dataset_dir, 'train'),
@@ -96,41 +96,22 @@ if __name__ == '__main__':
         preprocess = tf.keras.applications.resnet50.preprocess_input)
 
     model = create_model(len(class_names))
-    model.summary()
-    
-    hist = brn.fit_model(
+    #model.summary()
+
+
+    # callbacks = [EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True),
+    # ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, verbose=1)]
+
+
+    # FINE-TUNING
+    hist_finetune = brn.fit_model(
         model = model,
         model_name = MODEL_NAME,
         train_ds = train_ds,
         val_ds = val_ds,
-        epochs = EPOCHS)
-    
-    resnet_layers = tf.keras.applications.ResNet50(include_top = False, weights = 'imagenet')
-    resnet_layers.summary()
-
-    
-    for layer in resnet_layers.layers[-10:]:
-        layer.trainable = True
-
-    for i, layer in enumerate(resnet_layers.layers):
-        print(i, layer.name, layer.trainable)
-
-    # After changing layer.trainable, always recompile the model before further training
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=1e-5),
-        loss='categorical_crossentropy',
-        metrics=['accuracy']
+        epochs = EPOCHS,
     )
 
-    # FINE-TUNING: train again with unfrozen layers 
-    hist_finetune = brn.fit_model(
-    model = model,
-    model_name = MODEL_NAME,
-    train_ds = train_ds,
-    val_ds = val_ds,
-    epochs = EPOCHS 
-    )
-        
     loss_score, acc = model.evaluate(test_ds)
 
     y_true, y_pred = brn.predict_data(model, test_ds)
@@ -155,7 +136,7 @@ if __name__ == '__main__':
         y_true,
         y_pred,
         target_names = class_names)
-    
+
     print('Val Loss =', round(loss_score, 4))
     print('Val Accuracy =', round(acc, 4))
     print(f'Classification Report {MODEL_NAME}is : \n {ClassificationReport}')
