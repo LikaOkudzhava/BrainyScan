@@ -1,0 +1,91 @@
+#########
+#
+# Get statistics
+GET http://127.0.0.1:5000/api/v1/scan HTTP/1.1
+
+#########
+#
+# ModerateDemented
+POST http://127.0.0.1:5000/api/v1/scan HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary123
+
+--Boundary123
+Content-Disposition: form-data; name="file"; filename="0a2fdd8a-2d3a-4108-8441-73c6c31dc85d.jpg"
+Content-Type: image/jpeg
+
+< ../data/Preprocessed/test/ModerateDemented/0a2fdd8a-2d3a-4108-8441-73c6c31dc85d.jpg
+--Boundary123--
+
+#########
+#
+# MildDemented
+POST http://127.0.0.1:5000/api/v1/scan HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary123
+
+--Boundary123
+Content-Disposition: form-data; name="file"; filename="0aed5b41-c8c9-4cd5-89d4-619d94428ce9.jpg"
+Content-Type: image/jpeg
+
+< ../data/Preprocessed/test/MildDemented/0aed5b41-c8c9-4cd5-89d4-619d94428ce9.jpg
+--Boundary123--
+
+#########
+#
+# NonDemented
+POST http://127.0.0.1:5000/api/v1/scan HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary123
+
+--Boundary123
+Content-Disposition: form-data; name="file"; filename="0abb0bd4-40b9-4d91-af88-afaac826294b.jpg"
+Content-Type: image/jpeg
+
+< ../data/Preprocessed/test/NonDemented/0abb0bd4-40b9-4d91-af88-afaac826294b.jpg
+--Boundary123--
+
+#########
+#
+# VeryMildDemented
+POST http://127.0.0.1:5000/api/v1/scan HTTP/1.1
+Content-Type: multipart/form-data; boundary=Boundary123
+
+--Boundary123
+Content-Disposition: form-data; name="file"; filename="0abc5b3d-448e-420d-9062-57d430f16d29.jpg"
+Content-Type: image/jpeg
+
+< ../data/Preprocessed/test/VeryMildDemented/0abc5b3d-448e-420d-9062-57d430f16d29.jpg
+--Boundary123--
+
+############
+
+
+#
+#########
+#
+# ModerateDemented:
+# get the probabilities and class
+GET http://127.0.0.1:5000/api/v1/scan/c3ee8d2a55e83b341680c13e3ac94375c76f611142700ffac97b491b3db6bee7 HTTP/1.1
+Accept: application/json
+
+#
+#########
+#
+# MildDemented:
+# get the probabilities and class
+GET http://127.0.0.1:5000/api/v1/scan/95eaff8c777f869f47679afb491a5e08b20331b7270e0cd4bd230156ace12c2c HTTP/1.1
+Accept: application/json
+
+#
+#########
+#
+# NonDemented:
+# get the probabilities and class
+GET http://127.0.0.1:5000/api/v1/scan/12ca2f3907ea0e707d31095c7b0bc8b5658278019b6e23db4fe42ce1556e9579 HTTP/1.1
+Accept: application/json
+
+#
+#########
+#
+# VeryMildDemented:
+# get the probabilities and class
+GET http://127.0.0.1:5000/api/v1/scan/80f4e059898b1ab16505034552022acb12fe0af3ca331304046efed7668b8608 HTTP/1.1
+Accept: application/json
