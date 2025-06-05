@@ -9,15 +9,15 @@ from werkzeug.datastructures import FileStorage
 
 class BrainyController:
     def __init__(self, model_path: str):
-        self.model = tf.keras.models.load_model(model_path)
+        self.model: tf.keras.Model = tf.keras.models.load_model(model_path)
 
         self.image_size = (299, 299)
-        self.predictions = {}
+        self.predictions: dict[str, dict[str, float]] = {}
 
         classes = ('MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented')
         sorted_classes = sorted(classes)
 
-        self.classes = {}
+        self.classes: dict[str, int] = {}
         for idx, cl_name in enumerate(sorted_classes):
             self.classes[cl_name] = idx
     
@@ -26,7 +26,7 @@ class BrainyController:
                          MildDemented: float,
                          ModerateDemented: float,
                          NonDemented: float,
-                         VeryMildDemented: float):
+                         VeryMildDemented: float) -> None:
         self.predictions[id] = {
             'MildDemented': MildDemented,
             'ModerateDemented': ModerateDemented,
@@ -38,7 +38,7 @@ class BrainyController:
                               probs: dict[str, float]) -> str:
         return max(probs, key = probs.get)
     
-    def __get_sha256_from_filestorage(self, file: FileStorage) -> int:
+    def __get_sha256_from_filestorage(self, file: FileStorage) -> str:
         pos = file.stream.tell()
         file.stream.seek(0)
 
@@ -50,7 +50,7 @@ class BrainyController:
         file.stream.seek(pos)
         return digest
 
-    def get_stats(self):
+    def get_stats(self) -> dict[str, int]:
         stats = {
             'MildDemented': 0,
             'ModerateDemented': 0,
@@ -63,10 +63,7 @@ class BrainyController:
         
         return stats
 
-    def start_predict(self, file: FileStorage) -> dict:
-        if file is None:
-            return {"error": "No file provided"}, 400
-
+    def start_predict(self, file: FileStorage) -> dict[str, str]:
         id = self.__get_sha256_from_filestorage(file)
 
         if id not in self.predictions:
@@ -88,7 +85,7 @@ class BrainyController:
             )
         return {'id': id }
     
-    def get_predict(self, id: str):
+    def get_predict(self, id: str) -> dict[str, str | dict[str, float]] | None:
         if id in self.predictions: 
             preds = self.predictions[id]
             return {
