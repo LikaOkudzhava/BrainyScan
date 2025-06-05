@@ -1,11 +1,49 @@
 <!DOCTYPE html>
-<html lang='en'>
-    <head>
-        <title>BrainyScan Alzheimer Analyzer</title>
-        <link rel="icon" type="image/x-icon" href="{{ favicon }}">
-        <meta charset="utf-8">
-    </head>
-    <body>
-        <h1>Welcome to the BrainyScan project</h1>
-    </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brainy Analyzer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="icon" type="image/x-icon" href="{{ favicon }}">
+</head>
+<body>
+  <h1>Brainy Analyzer</h1>
+
+  <form id="upload-form" enctype="multipart/form-data" action="/api/v1/scan" method="post" class="upload-box">
+    <label for="file" id="fileInput" class="upload-label">Choose Brain Scan Image:</label>
+    <input type="file" name="file" id="file" accept="image/jpeg" required>
+    <br><br>
+    <button type="submit" onclick="uploadFile()">Analyze</button>
+    <div id="result" style="margin-top: 20px;"></div>
+  </form>
+
+  <script>  
+    async function uploadFile() {
+      const input = document.getElementById('fileInput');
+      if (!input.files.length) {
+        alert('Select the file!');
+        return;
+      }
+      const file = input.files[0];
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/api/v1/scan', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+        const data = await response.json();
+        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('result').innerText = err.message;
+      }
+    }
+  </script>
+</body>
 </html>

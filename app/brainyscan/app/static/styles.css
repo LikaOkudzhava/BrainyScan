@@ -1,0 +1,55 @@
+/* styles.css */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  justify-content: center;  /* horizontal center */
+  align-items: center;      /* vertical center */
+  height: 100vh;            /* full viewport height */
+  flex-direction: column;   /* stack children vertically */
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+}
+
+.upload-box {
+  margin-top: 20px;
+  padding: 20px;
+  border: 2px dashed #aaa;
+  background: #fff;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.upload-box input[type="file"] {
+  display: none;
+}
+
+.upload-label {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #0066cc;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.upload-box button[type="submit"] {
+  margin-top: 15px;
+  padding: 10px 20px;
+  border: none;
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.upload-box button[type="submit"]:hover {
+  background-color: #218838;
+}
