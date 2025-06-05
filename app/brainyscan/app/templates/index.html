@@ -1,27 +1,62 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>BrainyScan Alzheimer Analyzer</title>
-  <link rel="icon" type="image/x-icon" href="{{ favicon }}">
-  <meta charset="utf-8">
- <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <h1>Welcome to the BrainyScan project</h1>
-  <form class="upload-box" action="/analyze" method="post" enctype="multipart/form-data">
+  <h1>BrainyScan Alzheimer Analyzer</h1>
+
+ <form class="upload-box" method="post" enctype="multipart/form-data" action="/api/v1/scan">
     <label class="upload-label" for="image">Choose Brain Scan Image</label>
     <input type="file" id="image" name="image" accept="image/*" required>
     <br>
     <input type="submit" value="Analyze">
   </form>
 
-  <script>
-    const fileInput = document.getElementById('image');
-    const label = document.querySelector('.upload-label');
+  <div id="result" style="margin-top: 20px;"></div>
 
-    fileInput.addEventListener('change', function () {
-      if (this.files.length > 0) {
-        label.textContent = this.files[0].name;
+  <script>
+    document.getElementById('upload-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+
+      const form = event.target;
+      console.log({form});
+      
+      const fileInput = form.querySelector('input[type="file"]');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Please select a file.');
+        return;
+      }
+
+      const formData = new FormData();
+      console.log({formData});
+      
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('/api/v1/scan', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        const resultDiv = document.getElementById('result');
+
+        if (data.prediction) {
+          resultDiv.innerHTML = `
+            <p><strong>Prediction:</strong> ${data.prediction}</p>
+            ${data.filename ? `<img src="/uploads/${data.filename}" width="300">` : ''}
+          `;
+        } else {
+          resultDiv.textContent = "Error: " + data.error;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('result').textContent = "Unexpected error occurred.";
       }
     });
   </script>
