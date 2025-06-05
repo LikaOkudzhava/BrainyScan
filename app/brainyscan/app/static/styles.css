@@ -39,7 +39,7 @@ body {
   font-weight: bold;
 }
 
-.upload-box input[type="submit"] {
+.upload-box button[type="submit"] {
   margin-top: 15px;
   padding: 10px 20px;
   border: none;
@@ -50,6 +50,6 @@ body {
   cursor: pointer;
 }
 
-.upload-box input[type="submit"]:hover {
+.upload-box button[type="submit"]:hover {
   background-color: #218838;
 }
