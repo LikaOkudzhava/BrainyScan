@@ -4,44 +4,137 @@
   <meta charset="UTF-8">
   <title>Brainy Analyzer</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <link rel="icon" type="image/x-icon" href="{{ favicon }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
 </head>
 <body>
   <h1>Brainy Analyzer</h1>
 
   <form id="upload-form" enctype="multipart/form-data" action="/api/v1/scan" method="post" class="upload-box">
-    <label for="file" id="fileInput" class="upload-label">Choose Brain Scan Image:</label>
-    <input type="file" name="file" id="file" accept="image/jpeg" required>
-    <br><br>
-    <button type="submit" onclick="uploadFile()">Analyze</button>
-    <div id="result" style="margin-top: 20px;"></div>
+    <label for="fileInput" id="fileLabel" class="upload-label">Select Brain MRI Scan Image</label>
+    <input type="file" name="file" id="fileInput" accept="image/jpeg" required onchange="uploadFile()">
+    <div style="margin-top: 20px;" id="demented-status">
+      <img id="selected_image" src="{{ url_for('static', filename='brain_placement.jpg') }}"/>
+      <p id="result">No file</p>
+    </div>
   </form>
 
-  <script>  
+  <script>
+
+    const API_URL = '/api/v1/scan'
+
+    const ALZSTATUS = Object.freeze({
+      NONE: '',
+      MILD: 'mild_demented',
+      MODERATE: 'moderate_demented',
+      NONDEMENTED: 'non_demented',
+      VERYMILD: 'very_mild_demented'
+    });
+    
+    /*** show given image on the page 
+     * 
+     * @param file: file object
+     */
+    async function showFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const image = document.getElementById('selected_image');
+        image.src = e.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+
+    function set_prediction_status(status) {
+      const status_el = document.getElementById('demented-status');
+      if (status_el) {
+        Object.values(ALZSTATUS).forEach(
+          (cl) => {
+            if ((cl.length != 0) && (cl != status)) {
+              status_el.classList.remove(cl);
+            }
+          });
+        
+        if (status.length != 0) {
+          status_el.classList.add(status);
+        }
+      }
+    }
+    /** show result of the prediction
+     * 
+     * @param prediction: a response data returned by the backend
+     */
+    async function showPredictionResult(prediction) {
+      const prediction_text = document.getElementById('result');
+      if (!prediction_text
+        || !prediction
+        || !prediction.class
+        || !prediction.probabilities ) {
+        console.log("ERROR: backend response corrupted or empty");
+        return;
+      }
+
+      switch(prediction.class.toLowerCase()) {
+        case 'milddemented':
+          prediction_text.innerText = 'Mild Demented';
+          set_prediction_status(ALZSTATUS.MILD);
+          break;
+        case 'moderatedemented':
+          prediction_text.innerText = 'Moderate Demented';
+          set_prediction_status(ALZSTATUS.MODERATE);
+          break;
+        case 'nondemented':
+          prediction_text.innerText = 'Non-Demented';
+          set_prediction_status(ALZSTATUS.NONDEMENTED);
+          break;
+        case 'verymilddemented':
+          prediction_text.innerText = 'Very Mild Demented';
+          set_prediction_status(ALZSTATUS.VERYMILD);
+          break;
+      }
+    }
+
     async function uploadFile() {
       const input = document.getElementById('fileInput');
+
       if (!input.files.length) {
         alert('Select the file!');
         return;
       }
+
+      set_prediction_status(ALZSTATUS.NONE);
+
       const file = input.files[0];
+
+      showFile(file);
 
       const formData = new FormData();
       formData.append('file', file);
 
       try {
-        const response = await fetch('/api/v1/scan', {
+  
+        const response = await fetch(API_URL, {
           method: 'POST',
           body: formData
         });
-
+        
         if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
+          throw new Error(`${response.status}`);
         }
+        
         const data = await response.json();
-        document.getElementById('result').innerText = JSON.stringify(data, null, 2);
+
+        const prediction_response = await fetch(`${API_URL}/${data.id}`, {
+          method: 'GET'
+        });
+
+        if (!prediction_response.ok) {
+          throw new Error(`${prediction_response.status}`);
+        }
+        
+        const prediction = await prediction_response.json();
+        
+        showPredictionResult(prediction);
       } catch (err) {
-        document.getElementById('result').innerText = err.message;
+        console.log(`ERROR: ${err.message}`);
       }
     }
   </script>

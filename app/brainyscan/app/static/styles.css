@@ -12,7 +12,7 @@ body {
   height: 100vh;            /* full viewport height */
   flex-direction: column;   /* stack children vertically */
   text-align: center;
-  font-family: Arial, sans-serif;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
   background-color: #f9f9f9;
 }
 
@@ -39,17 +39,30 @@ body {
   font-weight: bold;
 }
 
-.upload-box button[type="submit"] {
-  margin-top: 15px;
-  padding: 10px 20px;
-  border: none;
-  background-color: #28a745;
-  color: white;
-  font-weight: bold;
+
+#demented-status {
+  padding: 14px;
   border-radius: 6px;
-  cursor: pointer;
+}
+#selected_image {
+  width: 300px;
+  height: 300px;
+  background-color: lightgray;
 }
 
-.upload-box button[type="submit"]:hover {
-  background-color: #218838;
+#result {
+  font-size: larger;
+}
+
+.non_demented {
+  background-color: lightgreen;
+}
+.very_mild_demented {
+  background-color: lightgoldenrodyellow;
+}
+.mild_demented {
+  background-color: lightsalmon;
+}
+.moderate_demented {
+  background-color: lightcoral;
 }
