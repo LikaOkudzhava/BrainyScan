@@ -1,8 +1,6 @@
 tensorflow==2.19.0
-scikit-learn==1.6.1
-statsmodels==0.14.4
 opencv-python==4.11.0.86
 flask==3.1.1
-Pillow=11.2.1
+Pillow==11.2.1
 
 gunicorn==23.0.0
