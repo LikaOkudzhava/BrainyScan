@@ -2,16 +2,19 @@ from PIL import Image
 import numpy as np
 import tensorflow as tf
 import hashlib
+import cv2
+import imutils
 from tensorflow.keras.applications.xception import preprocess_input
 from tensorflow.keras.preprocessing import image
 
 from werkzeug.datastructures import FileStorage
 
 class BrainyController:
-    def __init__(self, model_path: str):
+    def __init__(self, model_path: str, model_image_size: tuple[int, int]):
         self.model: tf.keras.Model = tf.keras.models.load_model(model_path)
+        self.model.trainable = False
 
-        self.image_size = (299, 299)
+        self.image_size = model_image_size
         self.predictions: dict[str, dict[str, float]] = {}
 
         classes = ('MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented')
@@ -39,6 +42,14 @@ class BrainyController:
         return max(probs, key = probs.get)
     
     def __get_sha256_from_filestorage(self, file: FileStorage) -> str:
+        """ calculate a checksum of the file object contents binary data
+
+        Args:
+            file (FileStorage): file data obect
+
+        Returns:
+            str: a checksum value
+        """        
         pos = file.stream.tell()
         file.stream.seek(0)
 
@@ -49,6 +60,46 @@ class BrainyController:
 
         file.stream.seek(pos)
         return digest
+    
+    def __get_crop_area(self, image: Image.Image) -> tuple[int, int, int, int]:
+        """Finds the extreme points on the image and returns the bounding
+          rectangle for image contents
+
+        Args:
+            image (Image.Image): input image data
+
+        Returns:
+            _type_: rectangle in format (left, top, right, bottom)
+        """        
+        input_image = np.array(image)
+
+        gray = cv2.cvtColor(input_image, cv2.COLOR_RGB2GRAY)
+        gray = cv2.GaussianBlur(gray, (3, 3), 0)
+
+        # threshold the image, then perform a series of erosions +
+        # dilations to remove any small regions of noise
+        thresh = cv2.threshold(gray, 45, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.erode(thresh, None, iterations=2)
+        thresh = cv2.dilate(thresh, None, iterations=2)
+
+        # find contours in thresholded image, then grab the largest one
+        cnts = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        c = max(cnts, key=cv2.contourArea)
+
+        # find the extreme points
+        extLeft = tuple(c[c[:, :, 0].argmin()][0])
+        extRight = tuple(c[c[:, :, 0].argmax()][0])
+        extTop = tuple(c[c[:, :, 1].argmin()][0])
+        extBot = tuple(c[c[:, :, 1].argmax()][0])
+        ADD_PIXELS = 0
+
+        return (
+            extLeft[0] - ADD_PIXELS,
+            extTop[1] - ADD_PIXELS,
+            extRight[0] + ADD_PIXELS,
+            extBot[1] + ADD_PIXELS
+        )
 
     def get_stats(self) -> dict[str, int]:
         stats = {
@@ -68,6 +119,7 @@ class BrainyController:
 
         if id not in self.predictions:
             img = Image.open(file.stream).convert('RGB')
+            img = img.crop(self.__get_crop_area(img))
             img = img.resize(self.image_size)
 
             x = image.img_to_array(img)

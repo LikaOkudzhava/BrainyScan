@@ -58,6 +58,7 @@
         }
       }
     }
+
     /** show result of the prediction
      * 
      * @param prediction: a response data returned by the backend
@@ -101,6 +102,10 @@
       }
 
       set_prediction_status(ALZSTATUS.NONE);
+      const prediction_text = document.getElementById('result');
+      if (prediction_text) {
+        prediction_text.innerText = 'Wait...';
+      }
 
       const file = input.files[0];
 
