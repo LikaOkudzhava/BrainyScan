@@ -17,7 +17,8 @@ def create_app(test_config = None):
         pass
 
     controller = BrainyController(
-        os.path.join(app.instance_path, 'model.keras')
+        os.path.join(app.instance_path, 'model.keras'),
+        (299, 299)
     )
 
     @app.route('/')
