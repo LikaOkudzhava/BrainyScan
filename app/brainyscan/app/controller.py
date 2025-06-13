@@ -1,9 +1,15 @@
-from PIL import Image
+import PIL.Image
 import numpy as np
+import pydicom.pixel_data_handlers
+import pydicom.pixel_data_handlers.util
+import pydicom.pixels
 import tensorflow as tf
 import hashlib
 import cv2
 import imutils
+import PIL
+import pydicom
+import os
 from tensorflow.keras.applications.xception import preprocess_input
 from tensorflow.keras.preprocessing import image
 
@@ -16,6 +22,7 @@ class BrainyController:
 
         self.image_size = model_image_size
         self.predictions: dict[str, dict[str, float]] = {}
+        self.images: dict[str, PIL.Image.Image] = {}
 
         classes = ('MildDemented', 'ModerateDemented', 'NonDemented', 'VeryMildDemented')
         sorted_classes = sorted(classes)
@@ -61,7 +68,7 @@ class BrainyController:
         file.stream.seek(pos)
         return digest
     
-    def __get_crop_area(self, image: Image.Image) -> tuple[int, int, int, int]:
+    def __get_crop_area(self, image: PIL.Image.Image) -> tuple[int, int, int, int]:
         """Finds the extreme points on the image and returns the bounding
           rectangle for image contents
 
@@ -114,11 +121,51 @@ class BrainyController:
         
         return stats
 
+    def __jpg_to_image(self, file: FileStorage) -> PIL.Image.Image:
+        img = PIL.Image.open(file.stream).convert('RGB')
+        return img
+
+    def __dicom_to_image(self, file: FileStorage) -> PIL.Image.Image:
+        ds = pydicom.dcmread(file.stream)
+        file.stream.seek(0)
+
+        arr = pydicom.pixel_data_handlers.util.apply_voi_lut(
+                ds.pixel_array, ds
+            ) if hasattr(ds, 'VOILUTSequence') else ds.pixel_array
+
+        if len(arr.shape) == 2: # if grayscale, convert to RGB
+            arr = np.stack([arr]*3, axis=-1)
+
+        elif ds.PhotometricInterpretation in ['YBR_FULL', 'YBR_FULL_422']: # if non-rgb space
+            arr = pydicom.pixel_data_handlers.convert_color_space(
+                arr, ds.PhotometricInterpretation, 'RGB')
+        
+        if arr.dtype != np.uint8:   # if it is not 0-255, normalize
+            arr = arr.astype(np.float32)
+            arr = 255 * (arr - arr.min()) / (arr.max() - arr.min())
+            arr = arr.astype(np.uint8)
+
+        img = PIL.Image.fromarray(arr, mode='RGB')
+        return img
+
     def start_predict(self, file: FileStorage) -> dict[str, str]:
         id = self.__get_sha256_from_filestorage(file)
 
         if id not in self.predictions:
-            img = Image.open(file.stream).convert('RGB')
+
+            _, extension = os.path.splitext(file.filename)
+
+            img = None
+            
+            if extension.lower() in ('.jpg', '.jpeg'):
+                img = self.__jpg_to_image(file)
+            elif extension.lower() in ('.dcm'):
+                img = self.__dicom_to_image(file)
+            else:
+                return None
+
+            self.images[id] = img.copy()
+            
             img = img.crop(self.__get_crop_area(img))
             img = img.resize(self.image_size)
 
@@ -137,12 +184,21 @@ class BrainyController:
             )
         return {'id': id }
     
-    def get_predict(self, id: str) -> dict[str, str | dict[str, float]] | None:
+    def get_predict(self, id:str) -> dict[ str, dict[str, float] | str ] | None:
         if id in self.predictions: 
             preds = self.predictions[id]
             return {
                 'class': self.__get_class_predicted(preds),
                 'probabilities': preds
             }
+        return None
+
+    def get_image(self, id: str) -> dict[str, PIL.Image.Image] | None:
+        if id in self.images: 
+            return {
+                'image': self.images[id]
+            }
+        else:
+            print('file not found')
         
         return None

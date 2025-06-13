@@ -6,4 +6,8 @@ statsmodels==0.14.4
 opencv-python==4.11.0.86
 seaborn==0.13.2
 tqdm==4.67.1
-
+imutils==0.5.4
+pydicom==3.0.1
+gdcm==1.1
+pylibjpeg==2.0.1
+pylibjpeg-libjpeg==2.3.0
