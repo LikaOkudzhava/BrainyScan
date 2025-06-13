@@ -1,4 +1,9 @@
 /* styles.css */
+
+body {
+	background-image: url('background.jpeg')
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -65,4 +70,8 @@ body {
 }
 .moderate_demented {
   background-color: lightcoral;
+}
+
+h1 {
+	color: white;	
 }
