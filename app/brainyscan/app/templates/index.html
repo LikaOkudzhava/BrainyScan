@@ -11,7 +11,7 @@
 
   <form id="upload-form" enctype="multipart/form-data" action="/api/v1/scan" method="post" class="upload-box">
     <label for="fileInput" id="fileLabel" class="upload-label">Select Brain MRI Scan Image</label>
-    <input type="file" name="file" id="fileInput" accept="image/jpeg" required onchange="uploadFile()">
+    <input type="file" name="file" id="fileInput" accept="image/jpeg,.dcm,appplication/dicom" required onchange="uploadFile()">
     <div style="margin-top: 20px;" id="demented-status">
       <img id="selected_image" src="{{ url_for('static', filename='brain_placement.jpg') }}"/>
       <p id="result">No file</p>
@@ -29,18 +29,14 @@
       NONDEMENTED: 'non_demented',
       VERYMILD: 'very_mild_demented'
     });
-    
+
     /*** show given image on the page 
      * 
      * @param file: file object
      */
-    async function showFile(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const image = document.getElementById('selected_image');
-        image.src = e.target.result;
-      }
-      reader.readAsDataURL(file);
+    async function showFile(file_url) {
+      document.getElementById('selected_image').src = file_url;
+      console.log(`show new image: ${file_url}`);
     }
 
     function set_prediction_status(status) {
@@ -52,7 +48,7 @@
               status_el.classList.remove(cl);
             }
           });
-        
+
         if (status.length != 0) {
           status_el.classList.add(status);
         }
@@ -68,7 +64,7 @@
       if (!prediction_text
         || !prediction
         || !prediction.class
-        || !prediction.probabilities ) {
+        || !prediction.probabilities) {
         console.log("ERROR: backend response corrupted or empty");
         return;
       }
@@ -109,22 +105,20 @@
 
       const file = input.files[0];
 
-      showFile(file);
-
       const formData = new FormData();
       formData.append('file', file);
 
       try {
-  
+
         const response = await fetch(API_URL, {
           method: 'POST',
           body: formData
         });
-        
+
         if (!response.ok) {
           throw new Error(`${response.status}`);
         }
-        
+
         const data = await response.json();
 
         const prediction_response = await fetch(`${API_URL}/${data.id}`, {
@@ -134,10 +128,12 @@
         if (!prediction_response.ok) {
           throw new Error(`${prediction_response.status}`);
         }
-        
+
         const prediction = await prediction_response.json();
-        
+
         showPredictionResult(prediction);
+        showFile(`${API_URL}/${data.id}/image`);
+
       } catch (err) {
         console.log(`ERROR: ${err.message}`);
       }
