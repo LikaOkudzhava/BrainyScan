@@ -2,6 +2,9 @@ tensorflow==2.19.0
 opencv-python==4.11.0.86
 flask==3.1.1
 Pillow==11.2.1
-
-gunicorn==23.0.0
 imutils==0.5.4
+pydicom==3.0.1
+gdcm==1.1
+pylibjpeg==2.0.1
+pylibjpeg-libjpeg==2.3.0
+# gunicorn==23.0.0
