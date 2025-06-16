@@ -1,4 +1,35 @@
 /* styles.css */
+body {
+  background-image: url('background.jpeg');
+  background-repeat: repeat-y;
+}
+
+.theme {
+  --text-and-background-1: white;
+  --text-and-background-2: #0a0a0a;
+  --text-and-background-3: #303030;
+  --text-and-background-4: #adadad;
+  --accent-1: #009688;
+  --accent-2: #eeeeee;
+  --accent-3: #78909c;
+  --accent-4: #ec9191;
+  --accent-5: #aec9e6;
+  --accent-6: #eeff41;
+  --link: #4dd0e1;
+
+  --custom-1: #595959;
+  --custom-2: #7e7e7e;
+  --custom-3: #9e9e9e;
+  --custom-4: #bd9999;
+  --custom-5: #ca9696;
+
+  --non-demented: lightgreen;
+  --very-mild-demented: lightgoldenrodyellow;
+  --mild-demented: lightsalmon;
+  --moderate-demented: lightcoral;
+}
+
+
 html, body {
   height: 100%;
   width: 100%;
@@ -13,14 +44,18 @@ body {
   flex-direction: column;   /* stack children vertically */
   text-align: center;
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background-color: #f9f9f9;
+  background-color: var(--text-and-background-2);
+}
+
+h1 {
+  color: var(--accent-2);
 }
 
 .upload-box {
   margin-top: 20px;
   padding: 20px;
-  border: 2px dashed #aaa;
-  background: #fff;
+  border: 2px dashed var(--text-and-background-2);
+  background: var(--accent-2);
   border-radius: 12px;
   display: inline-block;
 }
@@ -32,8 +67,8 @@ body {
 .upload-label {
   display: inline-block;
   padding: 12px 24px;
-  background-color: #0066cc;
-  color: white;
+  background-color: var(--accent-1);
+  color: var(--text-and-background-1);
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
@@ -47,7 +82,7 @@ body {
 #selected_image {
   width: 300px;
   height: 300px;
-  background-color: lightgray;
+  background-color: var(--accent-5);
 }
 
 #result {
@@ -55,14 +90,14 @@ body {
 }
 
 .non_demented {
-  background-color: lightgreen;
+  background-color: var(--non-demented);
 }
 .very_mild_demented {
-  background-color: lightgoldenrodyellow;
+  background-color: var(--very-mild-demented);
 }
 .mild_demented {
-  background-color: lightsalmon;
+  background-color: var(--mild-demented);
 }
 .moderate_demented {
-  background-color: lightcoral;
+  background-color: var(--moderate-demented);
 }
