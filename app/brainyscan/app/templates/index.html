@@ -10,7 +10,7 @@
   <h1>Brainy Analyzer</h1>
 
   <form id="upload-form" enctype="multipart/form-data" action="/api/v1/scan" method="post" class="upload-box">
-    <label for="fileInput" id="fileLabel" class="upload-label">Select Brain MRI Scan Image</label>
+    <label for="fileInput" id="fileLabel" class="upload-label">Select MRI image</label>
     <input type="file" name="file" id="fileInput" accept="image/jpeg,.dcm,appplication/dicom" required onchange="uploadFile()">
     <div style="margin-top: 20px;" id="demented-status">
       <img id="selected_image" src="{{ url_for('static', filename='brain_placement.jpg') }}"/>
