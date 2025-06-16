@@ -17,6 +17,12 @@ clean-all:
 run:
 	docker run --detach -p 8080:8080 --name $(CNTNAME) $(IMG)
 
+stop:
+	docker stop $(CNTNAME)
+
+delete:
+	docker rm $(CNTNAME)
+
 inspect:
 	# --rm - remove on exit everything
 	docker run -p 8080:8080 --rm --interactive --tty --entrypoint /usr/bin/bash $(IMG)
