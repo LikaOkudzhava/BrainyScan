@@ -1,103 +1,163 @@
 /* styles.css */
 body {
-  background-image: url('background.jpeg');
-  background-repeat: repeat-y;
+	background-image: url('background.jpeg');
+	background-repeat: repeat-y;
 }
 
 .theme {
-  --text-and-background-1: white;
-  --text-and-background-2: #0a0a0a;
-  --text-and-background-3: #303030;
-  --text-and-background-4: #adadad;
-  --accent-1: #009688;
-  --accent-2: #eeeeee;
-  --accent-3: #78909c;
-  --accent-4: #ec9191;
-  --accent-5: #aec9e6;
-  --accent-6: #eeff41;
-  --link: #4dd0e1;
+	--text-and-background-1: white;
+	--text-and-background-2: #0a0a0a;
+	--text-and-background-3: #303030;
+	--text-and-background-4: #adadad;
+	--accent-1: #009688;
+	--accent-2: #eeeeee;
+	--accent-3: #78909c;
+	--accent-4: #ec9191;
+	--accent-5: #aec9e6;
+	--accent-6: #eeff41;
+	--link: #4dd0e1;
 
-  --custom-1: #595959;
-  --custom-2: #7e7e7e;
-  --custom-3: #9e9e9e;
-  --custom-4: #bd9999;
-  --custom-5: #ca9696;
+	--custom-1: #595959;
+	--custom-2: #7e7e7e;
+	--custom-3: #9e9e9e;
+	--custom-4: #bd9999;
+	--custom-5: #ca9696;
 
-  --non-demented: lightgreen;
-  --very-mild-demented: lightgoldenrodyellow;
-  --mild-demented: lightsalmon;
-  --moderate-demented: lightcoral;
+	--non-demented: lightgreen;
+	--very-mild-demented: lightgoldenrodyellow;
+	--mild-demented: lightsalmon;
+	--moderate-demented: lightcoral;
 }
 
 
-html, body {
-  height: 100%;
-  width: 100%;
-  margin: 0;
+html,
+body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
 }
 
 body {
-  display: flex;
-  justify-content: center;  /* horizontal center */
-  align-items: center;      /* vertical center */
-  height: 100vh;            /* full viewport height */
-  flex-direction: column;   /* stack children vertically */
-  text-align: center;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background-color: var(--text-and-background-2);
+	display: flex;
+	justify-content: center;	/* horizontal center */
+	align-items: center;		/* vertical center */
+	min-height: 100vh;			/* full viewport height */
+	flex-direction: column;		/* stack children vertically */
+	text-align: center;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	background-color: var(--text-and-background-2);
 }
 
+
 h1 {
-  color: var(--accent-2);
+	margin-top: 10vh;
+}
+
+.light-text-color {
+	color: var(--accent-2);
+}
+
+.container {
+	display: grid;
+	grid-template-columns: 400px 500px;
+	gap: 20px;
+	margin: 20px auto;
+}
+
+.column-1 {
+	padding: 20px;
+	border-radius: 8px;
+	box-sizing: border-box;
+}
+
+.column-2 {
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.col-2-item {
+  padding: 10px;
+  border-radius: 4px;
+}
+
+@media (max-width: 1000px) {
+  .column-2 {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    width: 100%;
+    padding: 0 20px;
+  }
+  .col-2-item {
+    width: 100%;
+    max-width: none;
+  }
 }
 
 .upload-box {
-  margin-top: 20px;
-  padding: 20px;
-  border: 2px dashed var(--text-and-background-2);
-  background: var(--accent-2);
-  border-radius: 12px;
-  display: inline-block;
+	margin-top: 20px;
+	padding: 20px;
+	border: 2px dashed var(--text-and-background-2);
+	background: var(--accent-2);
+	border-radius: 12px;
+	display: inline-block;
 }
 
 .upload-box input[type="file"] {
-  display: none;
+	display: none;
 }
 
 .upload-label {
-  display: inline-block;
-  padding: 12px 24px;
-  background-color: var(--accent-1);
-  color: var(--text-and-background-1);
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
+	display: inline-block;
+	padding: 12px 24px;
+	background-color: var(--accent-1);
+	color: var(--text-and-background-1);
+	border-radius: 6px;
+	cursor: pointer;
+	font-weight: bold;
 }
 
 
 #demented-status {
-  padding: 14px;
-  border-radius: 6px;
+	padding: 14px;
+	border-radius: 6px;
 }
+
 #selected_image {
-  width: 300px;
-  height: 300px;
-  background-color: var(--accent-5);
+	width: 300px;
+	height: 300px;
+	background-color: var(--accent-5);
 }
 
 #result {
-  font-size: larger;
+	font-size: larger;
 }
 
 .non_demented {
-  background-color: var(--non-demented);
+	background-color: var(--non-demented);
 }
+
 .very_mild_demented {
-  background-color: var(--very-mild-demented);
+	background-color: var(--very-mild-demented);
 }
+
 .mild_demented {
-  background-color: var(--mild-demented);
+	background-color: var(--mild-demented);
 }
+
 .moderate_demented {
-  background-color: var(--moderate-demented);
+	background-color: var(--moderate-demented);
+}
+
+#class-caption, #class-description {
+	text-align: left;
+	margin: 10px 0;
+}
+
+#class-caption {
+	font-weight: bold;
+	font-size: larger;
 }

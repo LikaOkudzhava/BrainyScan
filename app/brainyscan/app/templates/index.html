@@ -1,143 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Brainy Analyzer</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}">
+	<meta charset="UTF-8" />
+	<title>Brainy Analyzer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+	<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.png') }}" />
 </head>
+
 <body class="theme">
-  <h1>Brainy Analyzer</h1>
 
-  <form id="upload-form" enctype="multipart/form-data" action="/api/v1/scan" method="post" class="upload-box">
-    <label for="fileInput" id="fileLabel" class="upload-label">Select MRI image</label>
-    <input type="file" name="file" id="fileInput" accept="image/jpeg,.dcm,appplication/dicom" required onchange="uploadFile()">
-    <div style="margin-top: 20px;" id="demented-status">
-      <img id="selected_image" src="{{ url_for('static', filename='brain_placement.jpg') }}"/>
-      <p id="result">No file</p>
-    </div>
-  </form>
+	<h1 class="light-text-color center-item">Brainy Analyzer</h1>
 
-  <script>
+	<div class="container">
+		<div class="column-1">
+			<div class="upload-box">
+				<label for="fileInput" id="fileLabel" class="upload-label">Select MRI image</label>
+				<input type="file" name="file" id="fileInput" accept="image/jpeg,.dcm,appplication/dicom" required
+					onchange="uploadFile()" />
+				<div style="margin-top: 20px" id="demented-status">
+					<img id="selected_image" src="{{ url_for('static', filename='brain_placement.jpg') }}" />
+					<p id="result">No file</p>
+				</div>
+			</div>
+		</div>
+		<div class="column-2">
+			<div class="col-2-item">
+				<div class="light-text-color caption" id="class-caption"></div>
+				<div class="light-text-color text" id="class-description"></div>
+			</div>
+			<div id="probabilities" class="light-text-color col-2-item"></div>
+		</div>
+	</div>
 
-    const API_URL = '/api/v1/scan'
+	<script>
+		const API_URL = "/api/v1/scan";
 
-    const ALZSTATUS = Object.freeze({
-      NONE: '',
-      MILD: 'mild_demented',
-      MODERATE: 'moderate_demented',
-      NONDEMENTED: 'non_demented',
-      VERYMILD: 'very_mild_demented'
-    });
+		const ALZSTATUS = Object.freeze({
+			NONE: "",
+			MILD: "mild_demented",
+			MODERATE: "moderate_demented",
+			NONDEMENTED: "non_demented",
+			VERYMILD: "very_mild_demented",
+		});
 
-    /*** show given image on the page 
-     * 
-     * @param file: file object
-     */
-    async function showFile(file_url) {
-      document.getElementById('selected_image').src = file_url;
-      console.log(`show new image: ${file_url}`);
-    }
+		const class_explanations = Object.freeze({
+			verymilddemented: [
+				"Very Mild",
+				"Your brain scan very small changes that indicate earliest cognitive shifts. This isn't a final diagnosis, but these findings are important to discuss. Talk to your doctor soon for more checks.",
+			],
+			nondemented: [
+				"Non-Demented",
+				"Your brain scan shows no clear signs of Alzheimer's disease. This is good news and looks like a healthy brain for your age. Keep taking care of your brain!",
+			],
+			moderatedemented: [
+				"Moderate",
+				"Your brain scan shows noticeable changes in your brain, typical of moderate Alzheimer's disease. At this stage, symptoms usually affect daily life more. Seeing a doctor right away is crucial for a diagnosis and to plan care.",
+			],
+			milddemented: [
+				"Mild",
+				"Your brain scan shows clearer changes often seen with mild memory problems or early Alzheimer's. Even if symptoms are slight, these changes mean you should see a doctor right away. Get a full check-up to talk about next steps.",
+			],
+		});
 
-    function set_prediction_status(status) {
-      const status_el = document.getElementById('demented-status');
-      if (status_el) {
-        Object.values(ALZSTATUS).forEach(
-          (cl) => {
-            if ((cl.length != 0) && (cl != status)) {
-              status_el.classList.remove(cl);
-            }
-          });
+		document.addEventListener("DOMContentLoaded", function () {
+			setClassExplanation("");
+		});
 
-        if (status.length != 0) {
-          status_el.classList.add(status);
-        }
-      }
-    }
+		/*** show given image on the page
+		 *
+		 * @param file: file object
+		 */
+		async function showFile(file_url) {
+			document.getElementById("selected_image").src = file_url;
+		}
 
-    /** show result of the prediction
-     * 
-     * @param prediction: a response data returned by the backend
-     */
-    async function showPredictionResult(prediction) {
-      const prediction_text = document.getElementById('result');
-      if (!prediction_text
-        || !prediction
-        || !prediction.class
-        || !prediction.probabilities) {
-        console.log("ERROR: backend response corrupted or empty");
-        return;
-      }
+		function setPredictionStatus(status) {
+			const status_el = document.getElementById("demented-status");
+			if (status_el) {
+				Object.values(ALZSTATUS).forEach((cl) => {
+					if (cl.length != 0 && cl != status) {
+						status_el.classList.remove(cl);
+					}
+				});
 
-      switch(prediction.class.toLowerCase()) {
-        case 'milddemented':
-          prediction_text.innerText = 'Mild Demented';
-          set_prediction_status(ALZSTATUS.MILD);
-          break;
-        case 'moderatedemented':
-          prediction_text.innerText = 'Moderate Demented';
-          set_prediction_status(ALZSTATUS.MODERATE);
-          break;
-        case 'nondemented':
-          prediction_text.innerText = 'Non-Demented';
-          set_prediction_status(ALZSTATUS.NONDEMENTED);
-          break;
-        case 'verymilddemented':
-          prediction_text.innerText = 'Very Mild Demented';
-          set_prediction_status(ALZSTATUS.VERYMILD);
-          break;
-      }
-    }
+				if (status.length != 0) {
+					status_el.classList.add(status);
+				}
+			}
+		}
 
-    async function uploadFile() {
-      const input = document.getElementById('fileInput');
+		function setClassExplanation(className) {
+			const caption = document.getElementById("class-caption"),
+				explanation = document.getElementById("class-description");
 
-      if (!input.files.length) {
-        alert('Select the file!');
-        return;
-      }
+			if (className in class_explanations) {
+				if (caption) {
+					caption.innerHTML = class_explanations[className][0];
+				}
+				if (explanation) {
+					explanation.innerHTML = class_explanations[className][1];
+				}
+			} else {
+				if (caption) {
+					caption.innerHTML = "";
+				}
+				if (explanation) {
+					explanation.innerHTML = "";
+				}
+			}
+		}
 
-      set_prediction_status(ALZSTATUS.NONE);
-      const prediction_text = document.getElementById('result');
-      if (prediction_text) {
-        prediction_text.innerText = 'Wait...';
-      }
+		/** show result of the prediction
+		 *
+		 * @param prediction: a response data returned by the backend
+		 */
+		async function showPredictionResult(prediction) {
+			const prediction_text = document.getElementById("result");
+			if (
+				!prediction_text ||
+				!prediction ||
+				!prediction.class ||
+				!prediction.probabilities
+			) {
+				console.log("ERROR: backend response corrupted or empty");
+				return;
+			}
 
-      const file = input.files[0];
+			class_name = prediction.class.toLowerCase() ?? "";
+			if (class_name in class_explanations) {
+				prediction_text.innerText = class_explanations[class_name][0] || "";
 
-      const formData = new FormData();
-      formData.append('file', file);
+				setClassExplanation(class_name);
 
-      try {
+				switch (class_name) {
+					case "milddemented":
+						setPredictionStatus(ALZSTATUS.MILD);
+						break;
+					case "moderatedemented":
+						setPredictionStatus(ALZSTATUS.MODERATE);
+						break;
+					case "nondemented":
+						setPredictionStatus(ALZSTATUS.NONDEMENTED);
+						break;
+					case "verymilddemented":
+						setPredictionStatus(ALZSTATUS.VERYMILD);
+						break;
+				}
+			}
+		}
 
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: formData
-        });
+		async function uploadFile() {
+			const input = document.getElementById("fileInput");
 
-        if (!response.ok) {
-          throw new Error(`${response.status}`);
-        }
+			if (!input.files.length) {
+				alert("Select the file!");
+				return;
+			}
 
-        const data = await response.json();
+			setPredictionStatus(ALZSTATUS.NONE);
+			const prediction_text = document.getElementById("result");
+			if (prediction_text) {
+				prediction_text.innerText = "Wait...";
+			}
 
-        const prediction_response = await fetch(`${API_URL}/${data.id}`, {
-          method: 'GET'
-        });
+			const file = input.files[0];
 
-        if (!prediction_response.ok) {
-          throw new Error(`${prediction_response.status}`);
-        }
+			const formData = new FormData();
+			formData.append("file", file);
 
-        const prediction = await prediction_response.json();
+			try {
+				const response = await fetch(API_URL, {
+					method: "POST",
+					body: formData,
+				});
 
-        showPredictionResult(prediction);
-        showFile(`${API_URL}/${data.id}/image`);
+				if (!response.ok) {
+					throw new Error(`${response.status}`);
+				}
 
-      } catch (err) {
-        console.log(`ERROR: ${err.message}`);
-      }
-    }
-  </script>
+				const data = await response.json();
+
+				const prediction_response = await fetch(`${API_URL}/${data.id}`, {
+					method: "GET",
+				});
+
+				if (!prediction_response.ok) {
+					throw new Error(`${prediction_response.status}`);
+				}
+
+				const prediction = await prediction_response.json();
+
+				showPredictionResult(prediction);
+				showFile(`${API_URL}/${data.id}/image`);
+			} catch (err) {
+				console.log(`ERROR: ${err.message}`);
+			}
+		}
+	</script>
 </body>
+
 </html>
