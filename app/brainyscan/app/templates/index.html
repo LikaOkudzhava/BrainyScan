@@ -30,10 +30,13 @@
 				<div class="light-text-color caption" id="class-caption"></div>
 				<div class="light-text-color text" id="class-description"></div>
 			</div>
-			<div id="probabilities" class="light-text-color col-2-item"></div>
+			<div id="graph">
+				<canvas id="probabilities" class="light-text-color col-2-item"></canvas>
+			</div>
 		</div>
 	</div>
-
+	
+	<script src="{{ url_for('static', filename='chart.js') }} "></script>
 	<script>
 		const API_URL = "/api/v1/scan";
 
@@ -64,22 +67,94 @@
 			],
 		});
 
+		let chart = null;
+
+		function format_probability(value) {
+			if (value === undefined || value === null) return '';
+			if (value < 0.01) {
+				return value.toExponential(2);
+			} else {
+				return value.toFixed(5);
+			}
+		}
+
 		document.addEventListener("DOMContentLoaded", function () {
 			setClassExplanation("");
+
+			const ctx = document.getElementById('probabilities').getContext('2d');
+			chart = new Chart(ctx, {
+				type: 'bar',
+				data: {
+					labels: [
+						'NonDemented',
+						'VeryMildDemented',
+						'MildDemented',
+						'ModerateDemented'
+        			],
+					datasets: [{
+						data: [0, 0, 0, 0],
+						backgroundColor: ['lightgreen', 'lightgoldenrodyellow', 'lightsalmon', 'lightcoral']
+					}]
+				},
+				options: {
+					responsive: true,
+					maintainAspectRatio: false,
+					scales: {
+						y: {
+							type: 'logarithmic',
+							min: 1e-9,
+							max: 1,
+							title: {
+								display: true,
+								text: "Probability",
+								font: {
+									family: "'Courier New', 'Courier', 'Fixed', monospace",
+									size: 16,
+									weight: 'normal'
+								},
+								color: 'white'
+							},
+							display: false,
+							ticks: {
+								font: {
+									family: "'Courier New', 'Courier', 'Fixed', monospace",
+									size: 14,
+									weight: 'normal'
+								},
+								color: 'white',
+								callback: (value) => format_probability(value)
+							},
+							grid: { color: 'white' }
+						},
+						x: { display: false }
+					},
+					plugins: {
+						legend: false,
+    					tooltip: {
+							callbacks: {
+								label: (context) => format_probability(context.raw)
+							}
+    					}
+					}
+				}
+			});
 		});
+
+			
 
 		/*** show given image on the page
 		 *
 		 * @param file: file object
 		 */
-		async function showFile(file_url) {
+		function showFile(file_url) {
 			document.getElementById("selected_image").src = file_url;
 		}
 
 		function setPredictionStatus(status) {
 			const status_el = document.getElementById("demented-status");
 			if (status_el) {
-				Object.values(ALZSTATUS).forEach((cl) => {
+
+				Object.keys(class_explanations).forEach((cl) => {
 					if (cl.length != 0 && cl != status) {
 						status_el.classList.remove(cl);
 					}
@@ -112,6 +187,22 @@
 			}
 		}
 
+		function showProbabilities(prediction) {
+			const ctx = document.getElementById('probabilities').getContext('2d');
+
+			if (chart) {
+				chart.options.scales.y.display = true;
+				chart.data.datasets[0].data = [
+					prediction.probabilities['NonDemented'],
+					prediction.probabilities['VeryMildDemented'],
+					prediction.probabilities['MildDemented'],
+					prediction.probabilities['ModerateDemented']
+				];
+				chart.update();
+			}
+
+		}
+		
 		/** show result of the prediction
 		 *
 		 * @param prediction: a response data returned by the backend
@@ -133,21 +224,8 @@
 				prediction_text.innerText = class_explanations[class_name][0] || "";
 
 				setClassExplanation(class_name);
-
-				switch (class_name) {
-					case "milddemented":
-						setPredictionStatus(ALZSTATUS.MILD);
-						break;
-					case "moderatedemented":
-						setPredictionStatus(ALZSTATUS.MODERATE);
-						break;
-					case "nondemented":
-						setPredictionStatus(ALZSTATUS.NONDEMENTED);
-						break;
-					case "verymilddemented":
-						setPredictionStatus(ALZSTATUS.VERYMILD);
-						break;
-				}
+				showProbabilities(prediction);
+				setPredictionStatus(class_name);
 			}
 		}
 
