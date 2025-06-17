@@ -133,7 +133,7 @@ class BrainyController:
                 ds.pixel_array, ds
             ) if hasattr(ds, 'VOILUTSequence') else ds.pixel_array
 
-        if len(arr.shape) == 2: # if grayscale, convert to RGB
+        if ds.PhotometricInterpretation.startswith("MONOCHROME") or len(arr.shape) == 2:
             arr = np.stack([arr]*3, axis=-1)
 
         elif ds.PhotometricInterpretation in ['YBR_FULL', 'YBR_FULL_422']: # if non-rgb space
@@ -148,7 +148,7 @@ class BrainyController:
         img = PIL.Image.fromarray(arr, mode='RGB')
         return img
 
-    def start_predict(self, file: FileStorage) -> dict[str, str]:
+    def start_predict(self, file: FileStorage) -> dict[str, str] | None:
         id = self.__get_sha256_from_filestorage(file)
 
         if id not in self.predictions:
