@@ -51,7 +51,7 @@ body {
 
 h1 {
 	text-align: center;
-	margin: 10vh auto 10px auto;
+	margin: 10px auto;
 	padding: 10px;
 	width: 90%;
 	max-width: 1000px;
@@ -68,6 +68,7 @@ h1 {
 	margin: 20px auto;
 	width: 90%;
 	max-width: 1000px;
+	height: 610px;
 }
 
 .column-1,
@@ -97,6 +98,8 @@ h1 {
 	display: inline-block;
 	width: 100%;
 	box-sizing: border-box;
+	max-width: 510px;
+	justify-content: center;
 }
 
 .upload-box input[type="file"] {
@@ -119,9 +122,8 @@ h1 {
 }
 
 #selected_image {
-	width: 100%;
-	max-width: 350px;
-	height: auto;
+	width: 350px;
+	height: 350px;
 	background-color: var(--accent-5);
 	margin: auto;
 }
@@ -160,7 +162,7 @@ h1 {
 
 #graph {
 	width: 100%;
-	height: 350px;
+	height: 100%;
 }
 
 /* 🌐 Responsive Design */
@@ -175,6 +177,10 @@ h1 {
 	.column-2 {
 		width: 100%;
 	}
+
+	#upload-box {
+		width: 550px;
+	}
 }
 
 @media (max-width: 600px) {
@@ -182,7 +188,11 @@ h1 {
 		font-size: 1.5rem;
 	}
 
-	.upload-label {
+	#upload-box {
+		width: 550px;
+	}
+
+	/* .upload-label {
 		width: 100%;
 		text-align: center;
 	}
@@ -190,5 +200,5 @@ h1 {
 	#selected_image {
 		max-width: 100%;
 		height: auto;
-	}
+	} */
 }
