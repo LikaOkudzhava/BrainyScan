@@ -120,7 +120,7 @@ h1 {
 
 #selected_image {
 	width: 100%;
-	max-width: 300px;
+	max-width: 350px;
 	height: auto;
 	background-color: var(--accent-5);
 	margin: auto;
