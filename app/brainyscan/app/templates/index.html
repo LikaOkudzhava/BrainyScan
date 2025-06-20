@@ -27,8 +27,11 @@
 		</div>
 		<div class="column-2">
 			<div class="col-2-item">
-				<div class="light-text-color caption" id="class-caption"></div>
-				<div class="light-text-color text" id="class-description"></div>
+				<div class="light-text-color caption" id="class-caption">No Image</div>
+				<div class="light-text-color text" id="class-description">
+					<p>Ready for analysis? Please select your brain scan image data</p>
+					<img src="{{ url_for('static', filename='smiley.svg') }}" style="width: 48px;" /> 
+				</div>
 			</div>
 			<div id="graph">
 				<canvas id="probabilities" class="light-text-color col-2-item"></canvas>
@@ -40,17 +43,9 @@
 	<script>
 		const API_URL = "/api/v1/scan";
 
-		const ALZSTATUS = Object.freeze({
-			NONE: "",
-			MILD: "mild_demented",
-			MODERATE: "moderate_demented",
-			NONDEMENTED: "non_demented",
-			VERYMILD: "very_mild_demented",
-		});
-
 		const class_explanations = Object.freeze({
 			verymilddemented: [
-				"Very Mild",
+				"Very Mild Demented",
 				"Your brain scan very small changes that indicate earliest cognitive shifts. This isn't a final diagnosis, but these findings are important to discuss. Talk to your doctor soon for more checks.",
 			],
 			nondemented: [
@@ -58,11 +53,11 @@
 				"Your brain scan shows no clear signs of Alzheimer's disease. This is good news and looks like a healthy brain for your age. Keep taking care of your brain!",
 			],
 			moderatedemented: [
-				"Moderate",
+				"Moderate Demented",
 				"Your brain scan shows noticeable changes in your brain, typical of moderate Alzheimer's disease. At this stage, symptoms usually affect daily life more. Seeing a doctor right away is crucial for a diagnosis and to plan care.",
 			],
 			milddemented: [
-				"Mild",
+				"Mild Demented",
 				"Your brain scan shows clearer changes often seen with mild memory problems or early Alzheimer's. Even if symptoms are slight, these changes mean you should see a doctor right away. Get a full check-up to talk about next steps.",
 			],
 		});
@@ -79,7 +74,6 @@
 		}
 
 		document.addEventListener("DOMContentLoaded", function () {
-			setClassExplanation("");
 
 			const ctx = document.getElementById('probabilities').getContext('2d');
 			chart = new Chart(ctx, {
@@ -116,6 +110,7 @@
 							},
 							display: false,
 							ticks: {
+								maxTicksLimit: 10,
 								font: {
 									family: "'Courier New', 'Courier', 'Fixed', monospace",
 									size: 14,
@@ -237,7 +232,7 @@
 				return;
 			}
 
-			setPredictionStatus(ALZSTATUS.NONE);
+			setPredictionStatus("");
 			const prediction_text = document.getElementById("result");
 			if (prediction_text) {
 				prediction_text.innerText = "Wait...";
